@@ -57,12 +57,33 @@
 
 				var images
 
+				var blacklist = []
+
 				var carousel
 
 				var container = document.querySelector('.container')
 
+				function pick_images(document) {
+					var elements = document.querySelectorAll('.tinythumb')
+
+					var elements_array = []
+					var i = 0
+					while (i < elements.length) {
+						elements_array.push(elements[i])
+						i++
+					}
+
+					return elements_array
+				}
+
 				function add_image(image) {
-					if (images.indexOf(image) < 0) {
+					if (blacklist.has(image)) {
+						return
+					}
+
+					if (!images.has(image)) {
+						console.log('Adding image', image)
+
 						images.push(image)
 
 						if (!carousel) {
@@ -73,6 +94,8 @@
 
 				function start_carousel() {
 					console.log('Start carousel')
+
+					var current_image
 
 					var index = 0
 					function cycle() {
@@ -86,12 +109,18 @@
 						else {
 							console.log('Cycling to image #' + index)
 
-							show_image(images[index])
+							current_image = images[index]
+							show_image(current_image)
+
 							index++
 						}
 					}
 
 					container.addEventListener('click', function() {
+						if (current_image) {
+							blacklist.push(current_image)
+							images.remove(current_image)
+						}
 						cycle()
 					})
 
@@ -152,16 +181,8 @@
 						// var html = $.parseHTML(data) 
 						
 						var document = parser.parseFromString(data, "text/html")
-						var elements = document.querySelectorAll('.tinythumb')
 
-						var elements_array = []
-						var i = 0
-						while (i < elements.length) {
-							elements_array.push(elements[i])
-							i++
-						}
-
-						Promise.map(elements_array, function(element) {
+						Promise.map(pick_images(document), function(element) {
 							// var resolver = Promise.pending()
 
 							var deviation_link = element.parentNode.getAttribute('href')
@@ -201,7 +222,29 @@
 					return resolver.promise
 				}
 
-				Element.prototype.prependChild = function(child) { this.insertBefore(child, this.firstChild); };
+				Object.defineProperty(Array.prototype, "has", {
+					enumerable: false,
+					value: function(item) {
+						return this.indexOf(item) >= 0
+					}
+				})
+
+				Object.defineProperty(Array.prototype, "remove", {
+					enumerable: false,
+					value: function(item) {
+						var removeCounter = 0;
+
+						for (var index = 0; index < this.length; index++) {
+							if (this[index] === item) {
+								this.splice(index, 1);
+								removeCounter++;
+								index--;
+							}
+						}
+
+						return removeCounter;
+					}
+				});
 				
 				refresh_images().then(function() {
 					setTimeout(refresh_images, Image_list_refresh_interval)
