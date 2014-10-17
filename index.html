@@ -5,25 +5,31 @@
 		<style>
 			body {
 				margin: 0;
+    			background-color: black;
 			}
 
-			div {
+			.container {
 				width: 100%;
-				text-align: center;
+				height: 100%;
+
+				/*text-align: center;*/
 			}
 
-			img {
+			.image {
 				width: 100%;
-				height: auto;
-
-				opacity: 0;
+				height: 100%;
 
 				position: absolute;
-				left: 0;
-				top: 0;
+				
+    			background-size: contain;
+    			background-repeat: no-repeat;
+    			background-position: center;
+    			background-color: black;
+
+				opacity: 0;
 			}
 
-			img.shown {
+			.image.shown {
 
 				opacity: 1;
 
@@ -40,28 +46,32 @@
 
 		<script>
 			$(function() {
-				var Carousel_cycle_interval = 10 * 60 * 1000
+				var Carousel_cycle_interval = 5 * 60 * 1000
 				// for testing:
 				// var Carousel_cycle_interval = 5 * 1000
-				var Image_refresh_interval = 12 * 60 * 60 * 1000
+				var Image_list_refresh_interval = 12 * 60 * 60 * 1000
 				var Image_refresh_failure_wait = 10 * 1000
 				var Image_fade_time = 2 * 1000 // sync this value with the stylesheet
 
 				var parser = new DOMParser()
 
-				var images = []
+				var images
+
+				var carousel
+
+				var container = document.querySelector('.container')
 
 				function add_image(image) {
 					if (images.indexOf(image) < 0) {
 						images.push(image)
 
-						if (images.length === 1) {
-							carousel()
+						if (!carousel) {
+							carousel = start_carousel()
 						}
 					}
 				}
 
-				function carousel() {
+				function start_carousel() {
 					console.log('Start carousel')
 
 					var index = 0
@@ -70,27 +80,41 @@
 							index = 0
 						}
 
-						console.log('Cycling to image #' + index, images[index])
-						console.log('Total images:', images.length)
+						if (images.length === 0) {
+							console.log('No images to show')
+						}
+						else {
+							console.log('Cycling to image #' + index)
 
-						show_image(images[index])
-						index++
+							show_image(images[index])
+							index++
+						}
 					}
+
+					container.addEventListener('click', function() {
+						cycle()
+					})
 
 					cycle()
 					setInterval(cycle, Carousel_cycle_interval)
-				}
 
-				var container = document.querySelector('div')
+					return {
+						cycle: cycle
+					}
+				}
 
 				function show_image(image) {
 					console.log('Show image', image)
 
-					var current_image = container.querySelector('img')
+					var current_image = container.querySelector('.image')
 
-					var new_image = document.createElement('img')
+					var loading_image = document.createElement('img')
 
-					new_image.onload = function () {
+					loading_image.onload = function () {
+
+						var new_image = document.createElement('div')
+						new_image.classList.add('image')
+						new_image.style.backgroundImage = 'url("' + image + '")'
 
 						container.appendChild(new_image)
 
@@ -107,11 +131,13 @@
 						}
 					}
 
-					new_image.src = image
+					loading_image.src = image
 				}
 
 				function refresh_images() {
 					console.log('Refreshing image list')
+
+					images = []
 
 					var resolver = Promise.pending()
 
@@ -178,7 +204,7 @@
 				Element.prototype.prependChild = function(child) { this.insertBefore(child, this.firstChild); };
 				
 				refresh_images().then(function() {
-					setTimeout(refresh_images, Image_refresh_interval)
+					setTimeout(refresh_images, Image_list_refresh_interval)
 				})
 				.catch(function() {
 					setTimeout(refresh_images, Image_refresh_failure_wait)
@@ -188,7 +214,7 @@
 	</head>
 
 	<body>
-		<div>
+		<div class="container">
 			<!-- <img/> -->
 		</div>
 	</body>
