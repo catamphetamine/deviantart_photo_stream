@@ -39,6 +39,17 @@
 				-o-transition      : opacity 2s ease-in-out;
 				transition         : opacity 2s ease-in-out;
 			}
+
+			.image.shown_forced {
+
+				opacity: 1;
+
+				-webkit-transition : opacity 0.3s ease-in-out;
+				-moz-transition    : opacity 0.3s ease-in-out;
+				-ms-transition     : opacity 0.3s ease-in-out;
+				-o-transition      : opacity 0.3s ease-in-out;
+				transition         : opacity 0.3s ease-in-out;
+			}
 		</style>
 
 		<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -49,7 +60,7 @@
 				var Carousel_cycle_interval = 5 * 60 * 1000
 				// for testing:
 				// var Carousel_cycle_interval = 5 * 1000
-				var Image_list_refresh_interval = 12 * 60 * 60 * 1000
+				// var Image_list_refresh_interval = 12 * 60 * 60 * 1000
 				var Image_refresh_failure_wait = 10 * 1000
 				var Image_fade_time = 2 * 1000 // sync this value with the stylesheet
 
@@ -86,8 +97,13 @@
 
 						images.push(image)
 
-						if (!carousel) {
-							carousel = start_carousel()
+						if (images.length === 1) {
+							if (!carousel) {
+								carousel = start_carousel()
+							} 
+							else {
+								carousel.cycle()
+							}
 						}
 					}
 				}
@@ -98,9 +114,10 @@
 					var current_image
 
 					var index = 0
-					function cycle() {
+					function cycle(options) {
 						if (index >= images.length) {
 							index = 0
+							return refresh_images()
 						}
 
 						if (images.length === 0) {
@@ -110,7 +127,7 @@
 							console.log('Cycling to image #' + index)
 
 							current_image = images[index]
-							show_image(current_image)
+							show_image(current_image, options)
 
 							index++
 						}
@@ -121,7 +138,7 @@
 							blacklist.push(current_image)
 							images.remove(current_image)
 						}
-						cycle()
+						cycle({ forced: true })
 					})
 
 					cycle()
@@ -132,7 +149,7 @@
 					}
 				}
 
-				function show_image(image) {
+				function show_image(image, options) {
 					console.log('Show image', image)
 
 					var current_image = container.querySelector('.image')
@@ -148,7 +165,8 @@
 						container.appendChild(new_image)
 
 						setTimeout(function() {
-							new_image.classList.add('shown')
+							var shown_class = (options && options.forced) ? 'shown_forced' : 'shown'
+							new_image.classList.add(shown_class)
 						}, 
 						100)
 
@@ -247,7 +265,7 @@
 				});
 				
 				refresh_images().then(function() {
-					setTimeout(refresh_images, Image_list_refresh_interval)
+					// setTimeout(refresh_images, Image_list_refresh_interval)
 				})
 				.catch(function() {
 					setTimeout(refresh_images, Image_refresh_failure_wait)
