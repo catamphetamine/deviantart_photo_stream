@@ -3,12 +3,12 @@
 
 http = require 'http'
 
+proxy_host_port = require('fs').readFileSync("#{__dirname}/proxy.txt", "utf8")
+
 configuration = 
 	proxy:
-		host : '65.49.14.147'
-		port : 3129
-		# host : '168.213.3.103'
-		# port : 80
+		host : proxy_host_port.split(':')[0]
+		port : proxy_host_port.split(':')[1]
 
 # http://blog.vanamco.com/proxy-requests-in-node-js/
 proxy = (url, callback) ->

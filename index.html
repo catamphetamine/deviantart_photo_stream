@@ -1,11 +1,11 @@
 <html>
 	<head>
-		<title></title>
+		<title>Endless Photo Stream</title>
 
 		<style>
 			body {
 				margin: 0;
-    			background-color: black;
+				background-color: black;
 			}
 
 			.container {
@@ -21,10 +21,10 @@
 
 				position: absolute;
 				
-    			background-size: contain;
-    			background-repeat: no-repeat;
-    			background-position: center;
-    			background-color: black;
+				background-size: contain;
+				background-repeat: no-repeat;
+				background-position: center;
+				background-color: black;
 
 				opacity: 0;
 			}
@@ -52,226 +52,11 @@
 			}
 		</style>
 
-		<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-		<script src="bluebird.js"></script>
+		<script src="libraries/language.js"></script>
+		<script src="libraries/ajax.js"></script>
+		<script src="libraries/bluebird.js"></script>
 
-		<script>
-			$(function() {
-				var Carousel_cycle_interval = 5 * 60 * 1000
-				// for testing:
-				// var Carousel_cycle_interval = 5 * 1000
-				// var Image_list_refresh_interval = 12 * 60 * 60 * 1000
-				var Image_refresh_failure_wait = 10 * 1000
-				var Image_fade_time = 2 * 1000 // sync this value with the stylesheet
-
-				var parser = new DOMParser()
-
-				var images
-
-				var blacklist = []
-
-				var carousel
-
-				var container = document.querySelector('.container')
-
-				function pick_images(document) {
-					var elements = document.querySelectorAll('.tinythumb')
-
-					var elements_array = []
-					var i = 0
-					while (i < elements.length) {
-						elements_array.push(elements[i])
-						i++
-					}
-
-					return elements_array
-				}
-
-				function add_image(image) {
-					if (blacklist.has(image)) {
-						return
-					}
-
-					if (!images.has(image)) {
-						console.log('Adding image', image)
-
-						images.push(image)
-
-						if (images.length === 1) {
-							if (!carousel) {
-								carousel = start_carousel()
-							} 
-							else {
-								carousel.cycle()
-							}
-						}
-					}
-				}
-
-				function start_carousel() {
-					console.log('Start carousel')
-
-					var current_image
-
-					var index = 0
-					function cycle(options) {
-						if (index >= images.length) {
-							index = 0
-							return refresh_images()
-						}
-
-						if (images.length === 0) {
-							console.log('No images to show')
-						}
-						else {
-							console.log('Cycling to image #' + index)
-
-							current_image = images[index]
-							show_image(current_image, options)
-
-							index++
-						}
-					}
-
-					container.addEventListener('click', function() {
-						if (current_image) {
-							blacklist.push(current_image)
-							images.remove(current_image)
-						}
-						cycle({ forced: true })
-					})
-
-					cycle()
-					setInterval(cycle, Carousel_cycle_interval)
-
-					return {
-						cycle: cycle
-					}
-				}
-
-				function show_image(image, options) {
-					console.log('Show image', image)
-
-					var current_image = container.querySelector('.image')
-
-					var loading_image = document.createElement('img')
-
-					loading_image.onload = function () {
-
-						var new_image = document.createElement('div')
-						new_image.classList.add('image')
-						new_image.style.backgroundImage = 'url("' + image + '")'
-
-						container.appendChild(new_image)
-
-						setTimeout(function() {
-							var shown_class = (options && options.forced) ? 'shown_forced' : 'shown'
-							new_image.classList.add(shown_class)
-						}, 
-						100)
-
-						if (current_image) {
-							setTimeout(function() {
-								container.removeChild(current_image)
-							},
-							Image_fade_time + 1 * 1000)
-						}
-					}
-
-					loading_image.src = image
-				}
-
-				function refresh_images() {
-					console.log('Refreshing image list')
-
-					images = []
-
-					var resolver = Promise.pending()
-
-					// DeviantArt.com is blocked by the Russian Firewall, so using a public anonymous proxy
-					$.ajax({
-						// url: "http://anonymouse.org/cgi-bin/anon-www.cgi/http://www.deviantart.com/",
-						url: 'http://localhost:9000/',
-						data: { url: 'http://www.deviantart.com/' },
-	    				dataType: "html"
-					})
-					.success(function(data) {
-						// var html = $.parseHTML(data) 
-						
-						var document = parser.parseFromString(data, "text/html")
-
-						Promise.map(pick_images(document), function(element) {
-							// var resolver = Promise.pending()
-
-							var deviation_link = element.parentNode.getAttribute('href')
-
-							if (!deviation_link) {
-								return;
-							}
-
-							$.ajax({
-								// url: "http://anonymouse.org/cgi-bin/anon-www.cgi/http://www.deviantart.com/",
-								url: 'http://localhost:9000/',
-								data: { url: deviation_link },
-			    				dataType: "html"
-							})
-							.success(function(data) {
-								var document = parser.parseFromString(data, "text/html")
-								var image = document.querySelector('img.dev-content-full')
-								// resolver.resolve(image.getAttribute('src'))
-
-								add_image(image.src)
-							})
-							.error(function(error) {
-								console.error(error)
-								// resolver.reject(error)
-							})
-
-							return resolver.promise
-						})
-
-						return resolver.resolve()
-					})
-					.error(function(error) {
-						console.error(error)
-						resolver.reject(error)
-					})
-
-					return resolver.promise
-				}
-
-				Object.defineProperty(Array.prototype, "has", {
-					enumerable: false,
-					value: function(item) {
-						return this.indexOf(item) >= 0
-					}
-				})
-
-				Object.defineProperty(Array.prototype, "remove", {
-					enumerable: false,
-					value: function(item) {
-						var removeCounter = 0;
-
-						for (var index = 0; index < this.length; index++) {
-							if (this[index] === item) {
-								this.splice(index, 1);
-								removeCounter++;
-								index--;
-							}
-						}
-
-						return removeCounter;
-					}
-				});
-				
-				refresh_images().then(function() {
-					// setTimeout(refresh_images, Image_list_refresh_interval)
-				})
-				.catch(function() {
-					setTimeout(refresh_images, Image_refresh_failure_wait)
-				})
-			})
-		</script>
+		<script data-main="application" src="libraries/require.js"></script>
 	</head>
 
 	<body>

@@ -47,7 +47,7 @@ Then you open the index.html in your web browser and go to fullscreen mode.
 
 You can click on an image to skip it.
 
-The image list is purged and updated every 12 hours.
+The image list is purged and updated every cycle.
 
 You might want to check the browser console for errors and debugging info.
 
