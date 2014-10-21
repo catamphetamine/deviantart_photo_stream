@@ -1,4 +1,4 @@
-define(['modules/database', 'modules/carousel'], function (database, carousel) {
+define(['modules/photostream'], function (photostream) {
 	return {
 		run: function() {
 			var resolver = Promise.pending()
@@ -42,8 +42,7 @@ define(['modules/database', 'modules/carousel'], function (database, carousel) {
 						var document = parser.parseFromString(data, "text/html")
 						var image = document.querySelector('img.dev-content-full')
 
-						database.add_image(image.src)
-						carousel.image_added()
+						photostream.add_image(image.src)
 					})
 					.catch(function(error) {
 						console.error('Loading image failed')

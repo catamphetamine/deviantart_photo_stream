@@ -17,6 +17,10 @@ define(['modules/database'], function (database) {
 			database.images = []
 
 			return this.active_plugin.run()
+		},
+
+		add_image: function(image) {
+			database.add_image(image)
 		}
 
 		// go: function() {

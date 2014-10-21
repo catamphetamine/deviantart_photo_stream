@@ -37,18 +37,14 @@ This utility
 Running
 =======
 
-First you run the proxy server
+Run the application by executing the "run.sh" script.
 
-```
-coffee proxy.coffee
-```
-
-Then you open the index.html in your web browser and go to fullscreen mode.
+Then in your web browser go to http://localhost:9000 and enter fullscreen mode.
 
 You can click on an image to skip it.
 
-The image list is purged and updated every cycle.
+The image list is updated every cycle.
 
 You might want to check the browser console for errors and debugging info.
 
-The script is absolutely raw and isn't tested well for now, so errors are likely to happen.
+The script isn't tested well for now, so errors of all kinds might to happen.

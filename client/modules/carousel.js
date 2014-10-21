@@ -93,5 +93,7 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 		}
 	}
 
+	database.on_image_added(carousel.image_added.bind(carousel))
+
 	return carousel
 })
