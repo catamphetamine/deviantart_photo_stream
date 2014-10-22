@@ -44,15 +44,15 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 			console.log('Start carousel')
 			this.container = container
 
-			container.addEventListener('click', function () {
-				if (carousel.current_image()) {
-					carousel.blacklist_image()
-				}
-				carousel.cycle({ forced: true })
-			})
-
 			this.cycle()
 			setInterval(this.cycle.bind(this), this.timers.Carousel_cycle_interval)
+		},
+
+		skip: function() {
+			if (carousel.current_image()) {
+				carousel.blacklist_image()
+			}
+			carousel.cycle({ forced: true })
 		},
 
 		show_image: function(image, options) {
@@ -70,17 +70,20 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 
 				carousel.container.appendChild(new_image)
 
+				// force css to animate between style class changes
 				setTimeout(function() {
-					var shown_class = (options && options.forced) ? 'shown_forced' : 'shown'
+					var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
 					new_image.classList.add(shown_class)
 				}, 
 				100)
 
 				if (current_image) {
-					setTimeout(function() {
+					do_while(function test() {
+						return current_image.style.opacity > 0
+					})
+					.then(function() {
 						carousel.container.removeChild(current_image)
-					},
-					carousel.timers.Image_fade_time + 1 * 1000)
+					})
 				}
 			}
 

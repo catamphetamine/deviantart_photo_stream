@@ -39,7 +39,7 @@ Running
 
 Run the application by executing the "run.sh" script.
 
-Then in your web browser go to http://localhost:9000 and enter fullscreen mode.
+Then in your web browser go to http://localhost:9000 and enter fullscreen mode (F11 for Chrome).
 
 You can click on an image to skip it.
 

@@ -11,6 +11,17 @@ define(function (require) {
 
 		carousel.start(container)
 
+		document.querySelector('.control.favourite').addEventListener('click', function (event) {
+			// add to favourites
+			// and update the icon
+		})
+
+		document.querySelector('.control.skip').addEventListener('click', function (event) {
+			carousel.skip()
+			// and update the icon with a spinner
+			// and disable the button
+		})
+
 		// })
 	})
 })
