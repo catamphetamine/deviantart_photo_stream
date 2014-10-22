@@ -1,4 +1,6 @@
 {
 	"port":  9000,
-	"proxy": "65.49.14.147:3129"
+	"proxy": "65.49.14.147:3129",
+	"forbidden": true,
+	"may_use_anonymouse_org": true
 }

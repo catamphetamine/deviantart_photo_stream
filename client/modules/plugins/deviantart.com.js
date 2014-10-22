@@ -42,7 +42,7 @@ define(['modules/photostream'], function (photostream) {
 						var document = parser.parseFromString(data, "text/html")
 						var image = document.querySelector('img.dev-content-full')
 
-						photostream.add_image(image.src)
+						photostream.add_image(image.getAttribute('src'))
 					})
 					.catch(function(error) {
 						console.error('Loading image failed')

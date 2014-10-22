@@ -17,14 +17,24 @@ application.get '/proxy', (request, response) ->
 		response.write('"url" parameter is required')
 		return response.end()
 
-	proxy request.query.url, process.domain.intercept (status, headers, data) ->
-		# console.log status
-		# console.log headers
-		# console.log data
+	url = request.query.url
+	options = {}
+
+	# Today they give me 403 Forbidden error no matter what proxy i use
+	if not configuration.forbidden
+		options.proxy = configuration.proxy
+	else if configuration.may_use_anonymouse_org
+		options.proxy = 
+			host: 'anonymouse.org'
+			port: 80
+		url = '/cgi-bin/anon-www.cgi/' + url
+
+	proxy(url, options, process.domain.intercept (status, headers, data) ->
 		headers['Access-Control-Allow-Origin'] = '*'
 		response.writeHead(status, headers)
 		response.write(data)
 		response.end()
+	)
 
 # domains = require 'domain'
 
@@ -83,21 +93,24 @@ application.get '/proxy', (request, response) ->
 # .listen(9000)
 
 # http://blog.vanamco.com/proxy-requests-in-node-js/
-proxy = (url, callback) ->
+proxy = (url, options, callback) ->
 	request_options = 
-		host   : configuration.proxy.host
-		port   : configuration.proxy.port
 		method : 'GET'
 		path   : url
-		
-	console.log "Proxying #{url}"
 
-	request = http.request request_options, (response) ->
+	if options.proxy
+		request_options.hostname = options.proxy.host
+		request_options.port     = options.proxy.port
+	
+		console.log "Proxying #{url} through #{options.proxy.host}:#{options.proxy.port}"
+
+	request = http.request(request_options, (response) ->
 		# result.setEncoding('utf8')
 		chunks = []
 
 		response.on('data', (chunk) -> chunks.push(chunk))
 		response.on('end', () -> callback(null, response.statusCode, response.headers, chunks.join('')))
+	)
 	
 	# Post data
 	# if data

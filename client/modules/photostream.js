@@ -20,6 +20,11 @@ define(['modules/database'], function (database) {
 		},
 
 		add_image: function(image) {
+
+			if (image.indexOf('http') > 0) {
+				image = image.substring(image.indexOf('http'))
+			}
+
 			database.add_image(image)
 		}
 
