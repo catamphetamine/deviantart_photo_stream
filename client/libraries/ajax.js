@@ -38,8 +38,8 @@ function ajax(url, data, options) {
 		resolver.resolve(this.responseText)
 	}
 
-	request.onerror = function() {
-		resolver.reject()
+	request.onerror = function(error) {
+		resolver.reject(error)
 	}
 
 	request.ontimeout = function() {

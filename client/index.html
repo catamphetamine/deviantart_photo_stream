@@ -2,160 +2,23 @@
 	<head>
 		<title>Endless Photo Stream</title>
 
-		<style>
-			body {
-				margin: 0;
-				background-color: black;
-			}
+		<link rel="stylesheet" href="/style.css"/>
 
-			.container {
-				width: 100%;
-				height: 100%;
+		<script src="/libraries/language.js"></script>
+		<script src="/libraries/ajax.js"></script>
+		<script src="/libraries/bluebird.js"></script>
 
-				/*text-align: center;*/
-			}
-
-			.image {
-				width: 100%;
-				height: 100%;
-
-				position: absolute;
-				
-				background-size: contain;
-				background-repeat: no-repeat;
-				background-position: center;
-				background-color: black;
-
-				opacity: 0;
-			}
-
-			.disable_selection {
-				-webkit-user-select: none;
-				-moz-user-select: none;
-				-ms-user-select: none;
-				user-select: none;
-			}
-
-			.shown_animated_slow {
-
-				opacity: 1;
-
-				-webkit-transition : opacity 2s ease-in-out;
-				-moz-transition    : opacity 2s ease-in-out;
-				-ms-transition     : opacity 2s ease-in-out;
-				-o-transition      : opacity 2s ease-in-out;
-				transition         : opacity 2s ease-in-out;
-			}
-
-			.shown_animated_fast {
-
-				opacity: 1;
-
-				-webkit-transition : opacity 0.3s ease-in-out;
-				-moz-transition    : opacity 0.3s ease-in-out;
-				-ms-transition     : opacity 0.3s ease-in-out;
-				-o-transition      : opacity 0.3s ease-in-out;
-				transition         : opacity 0.3s ease-in-out;
-			}
-
-			.controls {
-				position: absolute;
-				top: 0;
-				left: 0;
-				z-index: 1;
-
-				opacity: 0;
-
-				width: 100%;
-
-				padding: 0;
-
-				margin-bottom: 0;
-				margin-top: 11%;
-
-				list-style-type: none;
-				text-align: center;
-
-				transition: opacity 0.2s ease-in;
-				-webkit-transition: opacity 0.2s ease-in;
-			}
-
-			body:hover .controls {
-				opacity: 1;
-
-				transition: opacity 0.12s ease-out;
-				-webkit-transition: opacity 0.12s ease-out;
-			}
-
-			.controls li {
-				display: inline-block;
-
-				width: 4%;
-				height: 4%;
-
-				margin-left: 1%;
-				margin-right: 1%;
-			}
-
-			.control {
-				display: inline-block;
-
-				width: 100%;
-
-				background-size: 80%;
-				background-repeat: no-repeat;
-				background-position: center;
-				background-color: white;
-
-				border-radius: 6px;
-				opacity: 0.8;
-
-				cursor: pointer;
-
-				transition: background-color 0.1s ease-in-out, transform 0.1s;
-				-webkit-transition: background-color 0.1s ease-in-out, transform 0.1s;
-			}
-
-			.control:not(:active) {
-				transition: background-color 0.3s ease-in-out, transform 0.3s;
-				-webkit-transition: background-color 0.3s ease-in-out, transform 0.3s;
-			}
-
-			.control:active {
-				background-color: red;
-
-    			transform: scale(1.03);
-    			-webkit-transform: scale(1.03);
-			}
-
-			.favourite {
-				background-image: url('pictures/heart.png');
-			}
-
-			.skip {
-				background-image: url('pictures/cross.png');
-			}
-
-			.force_square {
-				margin-top: 100%;
-			}
-		</style>
-
-		<script src="libraries/language.js"></script>
-		<script src="libraries/ajax.js"></script>
-		<script src="libraries/bluebird.js"></script>
-
-		<script data-main="application" src="libraries/require.js"></script>
+		<script data-main="application" src="/libraries/require.js"></script>
 	</head>
 
 	<body class="disable_selection">
 		<ul class="controls">
 			<li><a class="control favourite"><div class="force_square"></div></a></li>
-			<li><a class="control skip"><div class="force_square"></div></a></li>
+			<li><a class="control skip"><img class="skip_spinner" src="/pictures/spinner.gif"/><div class="force_square"></div></a></li>
 		</ul>
 
 		<div class="container">
-			<!-- <img/> -->
+			<!-- images here -->
 		</div>
 	</body>
 </html>

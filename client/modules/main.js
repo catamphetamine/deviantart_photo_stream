@@ -14,12 +14,23 @@ define(function (require) {
 		document.querySelector('.control.favourite').addEventListener('click', function (event) {
 			// add to favourites
 			// and update the icon
+
+			console.log('to do: favourite', carousel.current_image())
 		})
 
-		document.querySelector('.control.skip').addEventListener('click', function (event) {
-			carousel.skip()
-			// and update the icon with a spinner
-			// and disable the button
+		var skip = document.querySelector('.control.skip')
+
+		var skipping = false
+		skip.addEventListener('click', function (event) {
+			if (carousel.cycling) {
+				return event.preventDefault()
+			}
+
+			skip.classList.add('skipping')
+
+			carousel.skip().finally(function() {
+				skip.classList.remove('skipping')
+			})
 		})
 
 		// })

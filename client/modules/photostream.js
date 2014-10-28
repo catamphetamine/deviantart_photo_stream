@@ -21,8 +21,12 @@ define(['modules/database'], function (database) {
 
 		add_image: function(image) {
 
-			if (image.indexOf('http') > 0) {
-				image = image.substring(image.indexOf('http'))
+			if (image.url.indexOf('http') > 0) {
+				image.url = image.url.substring(image.url.indexOf('http'))
+			}
+
+			if (image.link.indexOf('http') > 0) {
+				image.link = image.link.substring(image.link.indexOf('http'))
 			}
 
 			database.add_image(image)
