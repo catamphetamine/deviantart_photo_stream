@@ -85,11 +85,11 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 			return new Promise(function (resolve, reject) {
 				console.log('Show image', image)
 
-				var current_image = this.container.querySelector('.image:last-child')
-
 				var loading_image = document.createElement('img')
 
-				loading_image.onload = function() {
+				loading_image.onload = (function() {
+
+					var current_image = this.container.querySelector('.image:last-child')
 
 					// to do: templater
 
@@ -100,18 +100,30 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 					carousel.container.appendChild(new_image)
 
 					var header = document.createElement('header')
+					header.classList.add('picture_header')
 
 					var title = document.createElement('h1')
-					title.innerHTML = image.title
+					title.classList.add('picture_title')
 
 					header.appendChild(title)
 
 					var link = document.createElement('a')
+					link.classList.add('picture_link')
+					link.setAttribute('target', 'blank')
 					link.setAttribute('href', image.link)
 					link.innerHTML = image.title
 
+					var author_link = document.createElement('a')
+					author_link.classList.add('author_link')
+					author_link.setAttribute('target', 'blank')
+					author_link.setAttribute('href', image.author_link)
+					author_link.innerHTML = image.author
+
+					var by = document.createTextNode(' by ')
+
 					title.appendChild(link)
-					title.innerHTML = ' by ' + image.author
+					title.appendChild(by)
+					title.appendChild(author_link)
 
 					// var description = document.createElement('p')
 					// description.innerHTML = image.descirption
@@ -122,7 +134,6 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 					// force css to animate between style class changes
 					function finish() {
 						var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
-						new_image.classList.add(shown_class)
 
 						if (current_image) {
 							/* Listen for a transition */
@@ -130,12 +141,15 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 								current_image.removeNode()
 							})
 						}
+						
+						new_image.classList.add(shown_class)
 
 						resolve()
 					}
 
 					finish.delayed(0)
-				}
+				})
+				.bind(this)
 
 				loading_image.onerror = function(error) {
 					reject(error)

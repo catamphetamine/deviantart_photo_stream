@@ -173,3 +173,43 @@ body:hover .controls {
 .force_square {
 	margin-top: 100%;
 }
+
+.picture_header {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+
+	width: 100%;
+
+	background-color: #3f3f3f;
+	opacity: 0;
+
+	transition: opacity 0.2s ease-in;
+	-webkit-transition: opacity 0.2s ease-in;
+
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
+	transform: translateZ(0);
+}
+
+body:hover .picture_header {
+	opacity: 0.8;
+	
+	transition: opacity 0.12s ease-out;
+	-webkit-transition: opacity 0.12s ease-out;
+}
+
+.picture_title {
+	color: white;
+	margin-left: 1em;
+	font-family: sans-serif;
+}
+
+.picture_link, .author_link {
+	color: white;
+	text-decoration: none;
+}
+
+.picture_link:hover, .author_link:hover {
+	text-decoration: underline;
+}

@@ -50,6 +50,7 @@ define(['modules/photostream'], function (photostream) {
 						photostream.add_image({
 							title       : link.firstChild.nodeValue,
 							author      : author.firstChild.nodeValue,
+							author_link : author.getAttribute('href'),
 							url         : image.getAttribute('src'),
 							link        : link.getAttribute('href')
 						})
