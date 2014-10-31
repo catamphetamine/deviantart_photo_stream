@@ -129,7 +129,7 @@ body:hover .controls {
 }
 
 .control:active {
-	background-color: red;
+	/*background-color: red;*/
 
 	transform: scale(1.03);
 	-webkit-transform: scale(1.03);
@@ -139,8 +139,16 @@ body:hover .controls {
 	background-image: url('pictures/heart.png');
 }
 
+.favourite:active {
+	background-image: url('pictures/heart active.png');
+}
+
 .skip {
 	background-image: url('pictures/cross.png');
+}
+
+.skip:active {
+	background-image: url('pictures/cross active.png');
 }
 
 .skip.skipping {

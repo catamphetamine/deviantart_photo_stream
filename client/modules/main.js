@@ -16,11 +16,12 @@ define(function (require) {
 			// and update the icon
 
 			console.log('to do: favourite', carousel.current_image())
+
+			window.open(carousel.current_image().url,'_blank')
 		})
 
 		var skip = document.querySelector('.control.skip')
 
-		var skipping = false
 		skip.addEventListener('click', function (event) {
 			if (carousel.cycling) {
 				return event.preventDefault()

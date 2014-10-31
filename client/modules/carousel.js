@@ -39,7 +39,7 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 
 			this.index++
 
-			if (this.index > database.images.length || database.images.is_empty()) {
+			if (this.index >= database.images.length || database.images.is_empty()) {
 				this.index = -1
 
 				return this.query_and_show_images().finally(function() {
@@ -82,69 +82,68 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 		},
 
 		show_image: function(image, options) {
-			console.log('Show image', image)
+			return new Promise(function (resolve, reject) {
+				console.log('Show image', image)
 
-			var resolver = Promise.pending()
+				var current_image = this.container.querySelector('.image:last-child')
 
-			var current_image = this.container.querySelector('.image')
+				var loading_image = document.createElement('img')
 
-			var loading_image = document.createElement('img')
+				loading_image.onload = function() {
 
-			loading_image.onload = function() {
+					// to do: templater
 
-				// to do: templater
+					var new_image = document.createElement('section')
+					new_image.classList.add('image')
+					new_image.style.backgroundImage = 'url("' + image.url + '")'
 
-				var new_image = document.createElement('section')
-				new_image.classList.add('image')
-				new_image.style.backgroundImage = 'url("' + image.url + '")'
+					carousel.container.appendChild(new_image)
 
-				carousel.container.appendChild(new_image)
+					var header = document.createElement('header')
 
-				var header = document.createElement('header')
+					var title = document.createElement('h1')
+					title.innerHTML = image.title
 
-				var title = document.createElement('h1')
-				title.innerHTML = image.title
+					header.appendChild(title)
 
-				header.appendChild(title)
+					var link = document.createElement('a')
+					link.setAttribute('href', image.link)
+					link.innerHTML = image.title
 
-				var link = document.createElement('a')
-				link.setAttribute('href', image.link)
-				link.innerHTML = image.title
+					title.appendChild(link)
+					title.innerHTML = ' by ' + image.author
 
-				title.appendChild(link)
-				title.innerHTML = ' by ' + image.author
+					// var description = document.createElement('p')
+					// description.innerHTML = image.descirption
 
-				// var description = document.createElement('p')
-				// description.innerHTML = image.descirption
+					new_image.appendChild(header)
+					// new_image.appendChild(description)
 
-				new_image.appendChild(header)
-				// new_image.appendChild(description)
+					// force css to animate between style class changes
+					function finish() {
+						var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
+						new_image.classList.add(shown_class)
 
-				// force css to animate between style class changes
-				function finish() {
-					var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
-					new_image.classList.add(shown_class)
+						if (current_image) {
+							/* Listen for a transition */
+							new_image.addEventListener(whichTransitionEvent(), function() {
+								current_image.removeNode()
+							})
+						}
 
-					if (current_image) {
-						/* Listen for a transition */
-						new_image.addEventListener(whichTransitionEvent(), function() {
-							current_image.removeNode()
-						})
+						resolve()
 					}
 
-					resolver.resolve()
+					finish.delayed(0)
 				}
 
-				finish.delayed(0)
+				loading_image.onerror = function(error) {
+					reject(error)
+				}
+
+				loading_image.src = image.url
 			}
-
-			loading_image.onerror = function(error) {
-				resolver.reject(error)
-			}
-
-			loading_image.src = image.url
-
-			return resolver.promise
+			.bind(this))
 		},
 
 		blacklist_image: function() {
