@@ -179,4 +179,5 @@ application.use (error, request, response, next) ->
 		response.writeHead(500, { 'Content-Type': 'text/plain' })
 		response.end('Server error')
 
-server = application.listen(configuration.port)
+server = application.listen(configuration.port) ->
+	log.info "Now go to http://localhost:#{configuration.port}/"
