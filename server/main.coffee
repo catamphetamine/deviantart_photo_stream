@@ -9,17 +9,21 @@ http = require 'http'
 Root_folder = require('path').normalize(__dirname + '/..')
 global.Root_folder = Root_folder
 
+include 'language'
+
 fs = require('fs')
+global.extend = require 'node.extend'
 
 # Configuration
 configuration = JSON.parse(fs.readFileSync(Root_folder + '/configuration.json'))
 global.configuration = configuration
 
-proxy_host_port = configuration.proxy
+if configuration.proxy
+	proxy_host_port = configuration.proxy
 
-configuration.proxy =
-	host : proxy_host_port.split(':')[0]
-	port : proxy_host_port.split(':')[1]
+	configuration.proxy =
+		host : proxy_host_port.split(':')[0]
+		port : proxy_host_port.split(':')[1]
 
 # Logging
 log4js = require 'log4js'

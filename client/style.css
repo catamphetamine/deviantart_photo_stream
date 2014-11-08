@@ -117,6 +117,8 @@ body:hover .controls {
 	border-radius: 6px;
 	opacity: 0.8;
 
+	border: 1px solid #9f9f9f;
+
 	cursor: pointer;
 
 	transition: background-color 0.1s ease-in-out, transform 0.1s;

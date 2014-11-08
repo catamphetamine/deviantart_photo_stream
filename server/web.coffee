@@ -11,7 +11,7 @@ application.use(require('express-session')({ secret: 'chris carter', resave: yes
 
 application.use(require('express-domain-middleware'))
 
-application.get '/proxy', (request, response) ->
+application.get '/fetch', (request, response) ->
 	if not request.query.url
 		response.writeHead(200, { 'Content-Type': 'text/plain' })
 		response.write('"url" parameter is required')
@@ -20,21 +20,17 @@ application.get '/proxy', (request, response) ->
 	url = request.query.url
 	options = {}
 
-	# Today they give me 403 Forbidden error no matter what proxy i use
-	if not configuration.forbidden
-		options.proxy = configuration.proxy
-	else if configuration.may_use_anonymouse_org
-		options.proxy = 
-			host: 'anonymouse.org'
-			port: 80
-		url = '/cgi-bin/anon-www.cgi/' + url
+	if configuration.proxy
+		# Today they give me 403 Forbidden error no matter what proxy i use
+		if not configuration.forbidden
+			options.proxy = configuration.proxy
+		else if configuration.may_use_anonymouse_org
+			options.proxy = 
+				host: 'anonymouse.org'
+				port: 80
+			url = '/cgi-bin/anon-www.cgi/' + url
 
-	proxy(url, options, process.domain.intercept (status, headers, data) ->
-		headers['Access-Control-Allow-Origin'] = '*'
-		response.writeHead(status, headers)
-		response.write(data)
-		response.end()
-	)
+	proxy(url, options, { 'Access-Control-Allow-Origin': '*' }, response)
 
 # domains = require 'domain'
 
@@ -93,25 +89,50 @@ application.get '/proxy', (request, response) ->
 # .listen(9000)
 
 # http://blog.vanamco.com/proxy-requests-in-node-js/
-proxy = (url, options, callback) ->
-	request_options = 
-		method : 'GET'
-		path   : url
+proxy = (url, options, custom_headers, final_response) ->
+	requested = null
 
 	if options.proxy
-		request_options.hostname = options.proxy.host
-		request_options.port     = options.proxy.port
+		requested = 
+			method   : 'GET'
+			path     : url
+			hostname : options.proxy.host
+			port     : options.proxy.port
 	
 		console.log "Proxying #{url} through #{options.proxy.host}:#{options.proxy.port}"
+	else
+		requested = require('url').parse(url)
+		# emulate browser
+		requested.headers = 
+			'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.2.12) Gecko/20101026 Firefox/3.6.12'
+			'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+			'Accept-Language': 'en-us,en;q=0.5'
+			'Accept-Encoding': 'gzip,deflate'
 
-	request = http.request(request_options, (response) ->
+	request = http.request(requested, (response) ->
+		headers = Object.clone(response.headers)
+
+		compressed = response.headers['content-encoding'] == 'gzip'
+
+		if compressed
+			headers['content-length'] = null
+			headers['content-encoding'] = null
+
+		headers = extend(headers, custom_headers)
+
+		final_response.writeHead(response.statusCode, headers)
+
 		# result.setEncoding('utf8')
-		chunks = []
 
-		response.on('data', (chunk) -> chunks.push(chunk))
-		response.on('end', () -> callback(null, response.statusCode, response.headers, chunks.join('')))
+		if compressed
+			response = response.pipe(require('zlib').createGunzip())
+
+		response.on 'end', ->
+			console.log 'end'
+
+		response.pipe(final_response)
 	)
-	
+
 	# Post data
 	# if data
 	# 	request.write(data)
@@ -124,7 +145,7 @@ proxy = (url, options, callback) ->
 application.use(express.static(Root_folder + '/client'))
 
 # for angular.js routes
-application.use (request, response) -> response.sendfile(Root_folder + '/client/index.html')
+application.use (request, response) -> response.sendFile(Root_folder + '/client/index.html')
 
 server = null
 

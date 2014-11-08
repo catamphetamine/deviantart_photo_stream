@@ -26,6 +26,10 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 		},
 
 		cycle: function(options) {
+			return this.go_to(this.index + 1, Object.extend({ refresh_on_exhaustion: true }, options))
+		},
+
+		go_to: function(to, options) {
 			if (this.cycling) {
 				return Promise.reject('Already cycling')
 			}
@@ -37,15 +41,25 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 				this.cycle_timeout = null
 			}
 
-			this.index++
+			this.index = to
 
 			if (this.index >= database.images.length || database.images.is_empty()) {
-				this.index = -1
 
-				return this.query_and_show_images().finally(function() {
-					this.cycling = false
+				if (options.refresh_on_exhaustion) {
+
+					this.index = -1
+
+					return this.query_and_show_images().finally(function() {
+						this.cycling = false
+					}
+					.bind(this))
 				}
-				.bind(this))
+				else {
+					if (database.images.is_empty()) {
+						return Promise.resolve()
+					}
+					this.index = 0
+				}
 			}
 
 			console.log('Cycling to image #' + this.index)
@@ -56,6 +70,14 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 				this.cycling = false
 			}
 			.bind(this))
+		},
+
+		previous: function() {
+			return this.go_to(this.index - 1, { forced: true })
+		},
+
+		next: function() {
+			return this.go_to(this.index + 1, { forced: true })
 		},
 
 		image_added: function() {
@@ -138,6 +160,7 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 						if (current_image) {
 							/* Listen for a transition */
 							new_image.addEventListener(whichTransitionEvent(), function() {
+								console.log('removing node', current_image)
 								current_image.removeNode()
 							})
 						}

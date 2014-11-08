@@ -1,4 +1,4 @@
-define(['modules/photostream'], function (photostream) {
+define(['modules/photostream', 'modules/spider'], function (photostream, spider) {
 	return {
 		run: function() {
 			var parser = new DOMParser()
@@ -16,9 +16,7 @@ define(['modules/photostream'], function (photostream) {
 				return elements_array
 			}
 
-			// DeviantArt.com is blocked by the Russian Firewall, so using a public anonymous proxy
-			// url: "http://anonymouse.org/cgi-bin/anon-www.cgi/http://www.deviantart.com/",
-			return ajax('/proxy', { url: 'http://www.deviantart.com/' })
+			return spider.fetch('http://www.deviantart.com/', { queue: 'deviantart.com', interval: 1000 })
 			.then(function(data) {
 				var document = parser.parseFromString(data, 'text/html')
 
@@ -35,7 +33,7 @@ define(['modules/photostream'], function (photostream) {
 						return Promise.reject('No image link')
 					}
 
-					return ajax('/proxy', { url: deviation_link })
+					return spider.fetch(deviation_link, { queue: 'deviantart.com', interval: 1000 })
 					.then(function(data) {
 						var document = parser.parseFromString(data, 'text/html')
 

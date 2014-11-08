@@ -1,3 +1,13 @@
+Object.extend = function(a, b) {
+	if (b) {
+		Object.keys(b).forEach(function(key) {
+			a[key] = b[key]
+		})
+	}
+
+	return a
+}
+
 Object.defineProperty(Array.prototype, "has", {
 	enumerable: false,
 	value: function(item) {

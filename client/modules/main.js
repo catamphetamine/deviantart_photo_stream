@@ -3,7 +3,7 @@ define(function (require) {
 
 		// document.addEventListener("DOMContentLoaded", function (event) {
 
-		Promise.longStackTraces();
+		Promise.longStackTraces()
 
 		var container = document.querySelector('.container')
 
@@ -22,16 +22,32 @@ define(function (require) {
 
 		var skip = document.querySelector('.control.skip')
 
-		skip.addEventListener('click', function (event) {
+		function move_carousel_if_idle(action) {
 			if (carousel.cycling) {
 				return event.preventDefault()
 			}
 
 			skip.classList.add('skipping')
 
-			carousel.skip().finally(function() {
+			action().finally(function() {
 				skip.classList.remove('skipping')
 			})
+		}
+
+		skip.addEventListener('click', function (event) {
+			move_carousel_if_idle(carousel.skip.bind(carousel))
+		})
+
+		document.addEventListener('keydown', function (event) {
+			switch (event.keyCode) {
+				// left
+				case 37:
+					return move_carousel_if_idle(carousel.previous.bind(carousel))
+
+				// Right
+				case 39:
+					return move_carousel_if_idle(carousel.next.bind(carousel))
+			}
 		})
 
 		// })
