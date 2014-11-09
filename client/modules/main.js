@@ -5,49 +5,58 @@ define(function (require) {
 
 		Promise.longStackTraces()
 
+		dust.isDebug = true
+
 		var container = document.querySelector('.container')
 
-		photostream.plugin(deviantart)
-
-		carousel.start(container)
-
-		document.querySelector('.control.favourite').addEventListener('click', function (event) {
-			// add to favourites
-			// and update the icon
-
-			console.log('to do: favourite', carousel.current_image())
-
-			window.open(carousel.current_image().url,'_blank')
+		ajax('/templates/picture.html').then(function(template) {
+			
+			dust.loadSource(dust.compile(template, 'picture'))
 		})
+		.then(function() {
 
-		var skip = document.querySelector('.control.skip')
+			photostream.plugin(deviantart)
 
-		function move_carousel_if_idle(action) {
-			if (carousel.cycling) {
-				return event.preventDefault()
-			}
+			carousel.start(container)
 
-			skip.classList.add('skipping')
+			document.querySelector('.control.favourite').addEventListener('click', function (event) {
+				// add to favourites
+				// and update the icon
 
-			action().finally(function() {
-				skip.classList.remove('skipping')
+				console.log('to do: favourite', carousel.current_image())
+
+				window.open(carousel.current_image().url,'_blank')
 			})
-		}
 
-		skip.addEventListener('click', function (event) {
-			move_carousel_if_idle(carousel.skip.bind(carousel))
-		})
+			var skip = document.querySelector('.control.skip')
 
-		document.addEventListener('keydown', function (event) {
-			switch (event.keyCode) {
-				// left
-				case 37:
-					return move_carousel_if_idle(carousel.previous.bind(carousel))
+			function move_carousel_if_idle(action) {
+				if (carousel.cycling) {
+					return event.preventDefault()
+				}
 
-				// Right
-				case 39:
-					return move_carousel_if_idle(carousel.next.bind(carousel))
+				skip.classList.add('skipping')
+
+				action().finally(function() {
+					skip.classList.remove('skipping')
+				})
 			}
+
+			skip.addEventListener('click', function (event) {
+				move_carousel_if_idle(carousel.skip.bind(carousel))
+			})
+
+			document.addEventListener('keydown', function (event) {
+				switch (event.keyCode) {
+					// left
+					case 37:
+						return move_carousel_if_idle(carousel.previous.bind(carousel))
+
+					// Right
+					case 39:
+						return move_carousel_if_idle(carousel.next.bind(carousel))
+				}
+			})
 		})
 
 		// })

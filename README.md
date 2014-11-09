@@ -48,3 +48,17 @@ The image list is updated every cycle.
 You might want to check the browser console for errors and debugging info.
 
 The script isn't tested well for now, so errors of all kinds might to happen.
+
+To Do
+=====
+
+Показывать контролы не по наведению, а по клику (и скрывать по ещё одному клику, и ещё по таймауту)
+Кластеризовать
+Add a 500px.com plugin
+Could add a cghub plugin if it was still online
+Выкатить в виде веб-сайта (только deviantart сразу забанит)
+Как вариант, парсер один на сервере, тянет с нескольких сайтов
+Пользователи же сами могут лайкать/дизлайкать
+Список картинок на сервере постоянно ротируется
+Добавить картинки для вперёд/назад
+Добавить индикацию для "список исчерпан. идёт обновление" (в том числе при листании влево/вправо)

@@ -1,5 +1,5 @@
 /**
- * bluebird build version 2.3.6
+ * bluebird build version 2.3.11
  * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, progress, cancel, using, filter, any, each, timers
 */
 /**
@@ -382,6 +382,7 @@ Promise.prototype._cancel = function Promise$_cancel(reason) {
         parent.isCancellable()) {
         promiseToReject = parent;
     }
+    this._unsetCancellable();
     promiseToReject._attachExtraTrace(reason);
     promiseToReject._rejectUnchecked(reason);
 };
@@ -527,12 +528,21 @@ function CapturedTrace$PossiblyUnhandledRejection(reason) {
 };
 
 CapturedTrace.combine = function CapturedTrace$Combine(current, prev) {
-    var curLast = current.length - 1;
+    var currentLastIndex = current.length - 1;
+    var currentLastLine = current[currentLastIndex];
+    var commonRootMeetPoint = -1;
     for (var i = prev.length - 1; i >= 0; --i) {
+        if (prev[i] === currentLastLine) {
+            commonRootMeetPoint = i;
+            break;
+        }
+    }
+
+    for (var i = commonRootMeetPoint; i >= 0; --i) {
         var line = prev[i];
-        if (current[curLast] === line) {
+        if (current[currentLastIndex] === line) {
             current.pop();
-            curLast--;
+            currentLastIndex--;
         } else {
             break;
         }
@@ -1560,8 +1570,9 @@ if (canEvaluate) {
     };
 }
 
-
-
+function reject(reason) {
+    this._reject(reason);
+}
 
 Promise.join = function Promise$Join() {
     var last = arguments.length - 1;
@@ -1572,7 +1583,6 @@ Promise.join = function Promise$Join() {
             var ret = new Promise(INTERNAL);
             ret._setTrace(void 0);
             var holder = new Holder(last, fn);
-            var reject = ret._reject;
             var callbacks = thenCallbacks;
             for (var i = 0; i < last; ++i) {
                 var maybePromise = cast(arguments[i], void 0);
@@ -2164,7 +2174,9 @@ function Promise$_resolveFromSyncValue(value) {
     if (value === errorObj) {
         this._cleanValues();
         this._setRejected();
-        this._settledValue = value.e;
+        var reason = value.e;
+        this._settledValue = reason;
+        this._tryAttachExtraTrace(reason);
         this._ensurePossibleRejectionHandled();
     } else {
         var maybePromise = cast(value, void 0);
@@ -2622,6 +2634,7 @@ function Promise$_settlePromiseFromHandler(
         handler.call(receiver, value, promise);
         return;
     }
+    if (promise.isResolved()) return;
     var x = this._callHandler(handler, receiver, promise, value);
     if (promise._isFollowing()) return;
 
@@ -2705,6 +2718,13 @@ Promise.prototype._setTrace = function Promise$_setTrace(parent) {
         }
     }
     return this;
+};
+
+Promise.prototype._tryAttachExtraTrace =
+function Promise$_tryAttachExtraTrace(error) {
+    if (canAttach(error)) {
+        this._attachExtraTrace(error);
+    }
 };
 
 Promise.prototype._attachExtraTrace =
@@ -4777,7 +4797,7 @@ var _setTimeout = function(fn, ms) {
     var arg0 = arguments[2];
     var arg1 = arguments[3];
     var arg2 = len >= 5 ? arguments[4] : void 0;
-    setTimeout(function() {
+    return setTimeout(function() {
         fn(arg0, arg1, arg2);
     }, ms|0);
 };
@@ -4829,14 +4849,29 @@ Promise.prototype.delay = function Promise$delay(ms) {
     return delay(this, ms);
 };
 
+function successClear(value) {
+    var handle = this;
+    if (handle instanceof Number) handle = +handle;
+    clearTimeout(handle);
+    return value;
+}
+
+function failureClear(reason) {
+    var handle = this;
+    if (handle instanceof Number) handle = +handle;
+    clearTimeout(handle);
+    throw reason;
+}
+
 Promise.prototype.timeout = function Promise$timeout(ms, message) {
     ms = +ms;
 
     var ret = new Promise(INTERNAL);
     ret._propagateFrom(this, 7);
     ret._follow(this);
-    _setTimeout(afterTimeout, ms, ret, message, ms);
-    return ret.cancellable();
+    var handle = _setTimeout(afterTimeout, ms, ret, message, ms);
+    return ret.cancellable()
+              ._then(successClear, failureClear, void 0, handle, void 0);
 };
 
 };

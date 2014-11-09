@@ -12,4 +12,4 @@ apt-get install nodejs nodejs-legacy
 npm install --global coffee-script
 #npm install --global pm2
 
-npm install
+npm rebuild

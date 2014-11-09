@@ -1,4 +1,4 @@
-define(['modules/photostream', 'modules/database'], function (photostream, database) {
+define(['modules/photostream', 'modules/database', 'modules/template'], function (photostream, database, template) {
 	var carousel = {
 		timers: {
 			Carousel_cycle_interval: 5 * 60 * 1000,
@@ -43,7 +43,16 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 
 			this.index = to
 
-			if (this.index >= database.images.length || database.images.is_empty()) {
+			if (this.index < 0) {
+				if (database.images.is_empty()) {
+					this.index = 0
+				}
+				else {
+					this.index = database.images.length - 1
+				}
+			}
+
+			if (this.index < 0 || this.index >= database.images.length) {
 
 				if (options.refresh_on_exhaustion) {
 
@@ -113,64 +122,33 @@ define(['modules/photostream', 'modules/database'], function (photostream, datab
 
 					var current_image = this.container.querySelector('.image:last-child')
 
-					// to do: templater
+					template.render("picture", image).then(function(markup) {
 
-					var new_image = document.createElement('section')
-					new_image.classList.add('image')
-					new_image.style.backgroundImage = 'url("' + image.url + '")'
+						console.log(markup)
 
-					carousel.container.appendChild(new_image)
+						var new_image = markup
 
-					var header = document.createElement('header')
-					header.classList.add('picture_header')
+						carousel.container.appendChild(new_image)
 
-					var title = document.createElement('h1')
-					title.classList.add('picture_title')
+						// force css to animate between style class changes
+						function finish() {
+							var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
 
-					header.appendChild(title)
+							if (current_image) {
+								/* Listen for a transition */
+								new_image.addEventListener(whichTransitionEvent(), function() {
+									console.log('removing node', current_image)
+									current_image.removeNode()
+								})
+							}
+							
+							new_image.classList.add(shown_class)
 
-					var link = document.createElement('a')
-					link.classList.add('picture_link')
-					link.setAttribute('target', 'blank')
-					link.setAttribute('href', image.link)
-					link.innerHTML = image.title
-
-					var author_link = document.createElement('a')
-					author_link.classList.add('author_link')
-					author_link.setAttribute('target', 'blank')
-					author_link.setAttribute('href', image.author_link)
-					author_link.innerHTML = image.author
-
-					var by = document.createTextNode(' by ')
-
-					title.appendChild(link)
-					title.appendChild(by)
-					title.appendChild(author_link)
-
-					// var description = document.createElement('p')
-					// description.innerHTML = image.descirption
-
-					new_image.appendChild(header)
-					// new_image.appendChild(description)
-
-					// force css to animate between style class changes
-					function finish() {
-						var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
-
-						if (current_image) {
-							/* Listen for a transition */
-							new_image.addEventListener(whichTransitionEvent(), function() {
-								console.log('removing node', current_image)
-								current_image.removeNode()
-							})
+							resolve()
 						}
-						
-						new_image.classList.add(shown_class)
 
-						resolve()
-					}
-
-					finish.delayed(0)
+						finish.delayed(0)
+					})
 				})
 				.bind(this)
 
