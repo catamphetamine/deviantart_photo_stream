@@ -122,11 +122,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 					var current_image = this.container.querySelector('.image:last-child')
 
-					template.render("picture", image).then(function(markup) {
-
-						console.log(markup)
-
-						var new_image = markup
+					template.render("picture", image).then(function(new_image) {
 
 						carousel.container.appendChild(new_image)
 
