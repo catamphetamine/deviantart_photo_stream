@@ -18,12 +18,10 @@ global.extend = require 'node.extend'
 configuration = JSON.parse(fs.readFileSync(Root_folder + '/configuration.json'))
 global.configuration = configuration
 
-if configuration.proxy
-	proxy_host_port = configuration.proxy
-
+if typeof configuration.proxy == 'string'
 	configuration.proxy =
-		host : proxy_host_port.split(':')[0]
-		port : proxy_host_port.split(':')[1]
+		host : configuration.proxy.split(':')[0]
+		port : configuration.proxy.split(':')[1]
 
 # Logging
 log4js = require 'log4js'

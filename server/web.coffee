@@ -22,13 +22,15 @@ application.get '/fetch', (request, response) ->
 
 	if configuration.proxy
 		# Today they give me 403 Forbidden error no matter what proxy i use
-		if not configuration.forbidden
+		if typeof configuration.proxy == 'string' && not configuration.forbidden
 			options.proxy = configuration.proxy
 		else if configuration.may_use_anonymouse_org
 			options.proxy = 
 				host: 'anonymouse.org'
 				port: 80
 			url = '/cgi-bin/anon-www.cgi/' + url
+		else
+			throw new Error('No appropriate proxying strategy could be found')
 
 	proxy(url, options, { 'Access-Control-Allow-Origin': '*' }, response)
 
@@ -88,7 +90,6 @@ application.get '/fetch', (request, response) ->
 # )
 # .listen(9000)
 
-# http://blog.vanamco.com/proxy-requests-in-node-js/
 proxy = (url, options, custom_headers, final_response) ->
 	requested = null
 
