@@ -1,6 +1,6 @@
 {
 	"port":  9000,
-	"proxy": true,
+	"proxy": false,
 	"forbidden": true,
 	"may_use_anonymouse_org": true
 }

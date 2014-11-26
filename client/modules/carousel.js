@@ -128,19 +128,48 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 						// force css to animate between style class changes
 						function finish() {
-							var shown_class = (options && options.forced) ? 'shown_animated_fast' : 'shown_animated_slow'
 
-							if (current_image) {
-								/* Listen for a transition */
-								new_image.addEventListener(whichTransitionEvent(), function() {
-									console.log('removing node', current_image)
-									current_image.removeNode()
+							function add_class (element, style_class) {
+
+								return new Promise(function (resolve, reject) {
+									/* Listen for a transition */
+									var listener = function (event) {
+
+										// && !(!propertyName || event.propertyName === propertyName)
+										if (event.target !== element) {
+											return
+										}
+
+										element.removeEventListener(whichTransitionEvent(), listener)
+
+										resolve()
+									}
+
+									element.addEventListener(whichTransitionEvent(), listener)
+
+									element.classList.add(style_class)
 								})
 							}
-							
-							new_image.classList.add(shown_class)
 
-							resolve()
+							var shown_class = (options && options.forced) ? 'image_shown_fast' : 'image_shown_slow'
+							var hidden_class = (options && options.forced) ? 'image_hidden_fast' : 'image_hidden_slow'
+
+							if (current_image) {
+								current_image.classList.add(hidden_class)
+							}
+
+							add_class(new_image, shown_class).then(function() {
+
+								if (current_image) {
+									// for debugging
+									console.log('removing node', current_image)
+									console.log('event', event)
+
+									current_image.removeNode()
+								}
+
+								resolve()
+							})
 						}
 
 						finish.delayed(0)
