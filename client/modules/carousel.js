@@ -192,7 +192,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 							})
 						}
 
-						finish.delayed(0)
+						finish.delayed(10)
 					})
 				})
 				.bind(this)
