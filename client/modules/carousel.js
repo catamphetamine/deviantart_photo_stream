@@ -133,21 +133,41 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 								return new Promise(function (resolve, reject) {
 									/* Listen for a transition */
-									var listener = function (event) {
+									var listener
 
-										// && !(!propertyName || event.propertyName === propertyName)
+									function remove_listener() {
+										element.removeEventListener(whichTransitionEvent(), listener)
+									}
+
+									var resolved = false
+
+									function finish() {
+										if (resolved) {
+											return
+										}
+
+										resolved = true
+
+										remove_listener()
+										resolve()
+									}
+
+									listener = function (event) {
+
+										// // && !(!propertyName || event.propertyName === propertyName)
 										if (event.target !== element) {
 											return
 										}
 
-										element.removeEventListener(whichTransitionEvent(), listener)
-
-										resolve()
+										finish()
 									}
 
 									element.addEventListener(whichTransitionEvent(), listener)
 
 									element.classList.add(style_class)
+
+									// in case of lags, unfreeze the animation
+									Promise.delay(2000).then(finish)
 								})
 							}
 
