@@ -171,8 +171,11 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 								})
 							}
 
-							var shown_class = (options && options.forced) ? 'image_shown_fast' : 'image_shown_slow'
-							var hidden_class = (options && options.forced) ? 'image_hidden_fast' : 'image_hidden_slow'
+							// var shown_class = (options && options.forced) ? 'image_shown_fast' : 'image_shown_slow'
+							// var hidden_class = (options && options.forced) ? 'image_hidden_fast' : 'image_hidden_slow'
+
+							var shown_class = (options && options.forced) ? 'image_shown_slow' : 'image_shown_slow'
+							var hidden_class = (options && options.forced) ? 'image_hidden_slow' : 'image_hidden_slow'
 
 							if (current_image) {
 								current_image.classList.add(hidden_class)
