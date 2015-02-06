@@ -1,0 +1,8 @@
+{
+	"port":  9000,
+	"proxy": true,
+	"forbidden": true,
+	"may_use_anonymouse_org": true,
+	"sources": ["deviantart.com"],
+	"currently_not_working_sources": ["artstation.com", "500px.com"]
+}

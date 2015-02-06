@@ -95,3 +95,7 @@ function whichTransitionEvent () {
 		}
 	}
 }
+
+String.prototype.starts_with = function(what) {
+	return this.indexOf(what) === 0
+}

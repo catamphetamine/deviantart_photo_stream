@@ -2,5 +2,6 @@
 	"port":  9000,
 	"proxy": false,
 	"forbidden": true,
-	"may_use_anonymouse_org": true
+	"may_use_anonymouse_org": true,
+	"sources": ["deviantart.com"]
 }

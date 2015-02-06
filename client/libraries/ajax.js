@@ -33,9 +33,14 @@ function ajax(url, data, options) {
 			return resolver.reject(this.status)
 		}
 
-		// var data = JSON.parse(this.response);
+		var response = this.responseText
 
-		resolver.resolve(this.responseText)
+		if (this.getResponseHeader("Content-Type").starts_with('application/json')) {
+
+			response = JSON.parse(response)
+		}
+
+		resolver.resolve(response)
 	}
 
 	request.onerror = function(error) {

@@ -4,7 +4,7 @@ define(['modules/photostream', 'modules/spider'], function (photostream, spider)
 			var parser = new DOMParser()
 
 			function pick_images(document) {
-				var elements = document.querySelectorAll('.tinythumb')
+				var elements = document.querySelectorAll('.photo_cell > a.photo')
 
 				var elements_array = []
 				var i = 0
@@ -16,9 +16,11 @@ define(['modules/photostream', 'modules/spider'], function (photostream, spider)
 				return elements_array
 			}
 
-			return spider.fetch('http://www.deviantart.com/', { queue: 'deviantart.com', interval: 1000 })
+			return spider.fetch('http://www.500px.com/', { queue: '500px.com', interval: 1000 })
 			.then(function(data) {
 				var document = parser.parseFromString(data, 'text/html')
+
+				// because they load image list dynamically we're currently unable to fetch the images
 
 				var images = pick_images(document)
 
@@ -33,20 +35,19 @@ define(['modules/photostream', 'modules/spider'], function (photostream, spider)
 						return Promise.reject('No image link')
 					}
 
-					return spider.fetch(artwork_link, { queue: 'deviantart.com', interval: 1000 })
+					return spider.fetch(artwork_link, { queue: '500px.com', interval: 1000 })
 					.then(function(data) {
 						var document = parser.parseFromString(data, 'text/html')
 
-						var image = document.querySelector('img.dev-content-full')
+						var image = document.querySelector('.photo > .photo_wrap > img')
 
-						var h1 = document.querySelector('.dev-page-container h1')
-						var link = h1.querySelector('a')
-						var author = h1.querySelector('.username')
+						var title = document.querySelector('h1.name')
+						var author = title.querySelector('.author_name a')
 
 						// var description = document.querySelector('.dev-view-about .text')
 
 						photostream.add_image({
-							title       : link.firstChild.nodeValue,
+							title       : title.firstChild.nodeValue,
 							author      : author.firstChild.nodeValue,
 							author_link : author.getAttribute('href'),
 							url         : image.getAttribute('src'),

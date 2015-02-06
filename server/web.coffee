@@ -1,4 +1,5 @@
 http = require 'http'
+https = require 'https'
 
 # Express application
 
@@ -11,6 +12,12 @@ application.use(require('express-session')({ secret: 'chris carter', resave: yes
 
 application.use(require('express-domain-middleware'))
 
+application.get '/configuration', (request, response) ->
+	# response.writeHead(200, { 'Content-Type': 'application/json' })
+	# response.write('"url" parameter is required')
+	# return response.end()
+	response.send(configuration)
+
 application.get '/fetch', (request, response) ->
 	if not request.query.url
 		response.writeHead(200, { 'Content-Type': 'text/plain' })
@@ -19,6 +26,8 @@ application.get '/fetch', (request, response) ->
 
 	url = request.query.url
 	options = {}
+
+	console.log 'Fetching ' + url
 
 	if configuration.proxy
 		# Today they give me 403 Forbidden error no matter what proxy i use
@@ -110,7 +119,7 @@ proxy = (url, options, custom_headers, final_response) ->
 			'Accept-Language': 'en-us,en;q=0.5'
 			'Accept-Encoding': 'gzip,deflate'
 
-	request = http.request(requested, (response) ->
+	request = (if requested.protocol == 'https:' then https else http).request(requested, (response) ->
 		headers = Object.clone(response.headers)
 
 		compressed = response.headers['content-encoding'] == 'gzip'
