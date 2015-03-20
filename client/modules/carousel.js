@@ -211,8 +211,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 		},
 
 		blacklist_image: function() {
-			database.blacklist.push(this.current_image().url)
-			database.images.remove(this.current_image())
+			database.blacklist(this.current_image())
 		}
 	}
 

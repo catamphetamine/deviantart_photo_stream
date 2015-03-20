@@ -1,10 +1,10 @@
 define([], function () {
 	var database = {
 		images: [],
-		blacklist: [],
+		blacklisted: [],
 
 		add_image: function (image) {
-			if (this.blacklist.has(image.url)) {
+			if (this.blacklisted.has(image.url)) {
 				return
 			}
 
@@ -16,6 +16,22 @@ define([], function () {
 			console.log('Adding image', image)
 
 			this.images.push(image)
+		},
+
+		blacklist: function(image) {
+			this.blacklisted.push(image.url)
+			this.images.remove(image)
+
+			ajax('/blacklist', { image: image.url }, { method: 'post' })
+		},
+
+		load_blacklist: function(blacklist) {
+			
+			return ajax('/blacklist').then(function(blacklist) {
+				this.blacklisted = blacklist
+
+				console.log(this.blacklisted)
+			})
 		}
 	}
 

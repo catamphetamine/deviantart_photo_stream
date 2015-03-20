@@ -6,17 +6,30 @@ https = require 'https'
 express = require('express')
 application = express()
 
-application.use(require('body-parser').urlencoded({ extended: yes }))
+application.use(require('body-parser')({ limit: 1099511627776 })) # 1 Terabyte
 application.use(require('cookie-parser')())
 application.use(require('express-session')({ secret: 'chris carter', resave: yes, saveUninitialized: yes }))
 
 application.use(require('express-domain-middleware'))
+
+blacklisted_images = []
 
 application.get '/configuration', (request, response) ->
 	# response.writeHead(200, { 'Content-Type': 'application/json' })
 	# response.write('"url" parameter is required')
 	# return response.end()
 	response.send(configuration)
+
+application.get '/blacklist', (request, response) ->
+	response.send(blacklisted_images)
+
+application.post '/blacklist', (request, response) ->
+	image_url = request.body.image
+	
+	if not blacklisted_images.has(image_url)
+		blacklisted_images.push(image_url)
+
+	response.send({})
 
 application.get '/fetch', (request, response) ->
 	if not request.query.url

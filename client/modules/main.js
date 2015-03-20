@@ -4,70 +4,73 @@ define(function (require) {
 		Promise.longStackTraces()
 
 		ajax('/configuration').then(function(configuration) {
-			
-			// document.addEventListener("DOMContentLoaded", function (event) {
 
-			var plugin_modules = configuration.sources.map(function(source) {	
-				return 'modules/plugins/' + source
-			})
+			database.load_blacklist().then(function() {
 
-			require(plugin_modules, function() {
+				// document.addEventListener("DOMContentLoaded", function (event) {
 
-				var plugins = Array.prototype.slice.call(arguments)
-
-				plugins.forEach(function(plugin) {
-					photostream.plugin(plugin)
+				var plugin_modules = configuration.sources.map(function(source) {	
+					return 'modules/plugins/' + source
 				})
 
-				dust.isDebug = true
+				require(plugin_modules, function() {
 
-				var container = document.querySelector('.container')
+					var plugins = Array.prototype.slice.call(arguments)
 
-				ajax('/templates/picture.html').then(function(template) {
-					
-					dust.loadSource(dust.compile(template, 'picture'))
-				})
-				.then(function() {
-
-					carousel.start(container)
-
-					document.querySelector('.control.favourite').addEventListener('click', function (event) {
-						// add to favourites
-						// and update the icon
-
-						console.log('to do: favourite', carousel.current_image())
-
-						window.open(carousel.current_image().url,'_blank')
+					plugins.forEach(function(plugin) {
+						photostream.plugin(plugin)
 					})
 
-					var skip = document.querySelector('.control.skip')
+					dust.isDebug = true
 
-					function move_carousel_if_idle(action) {
-						if (carousel.cycling) {
-							return event.preventDefault()
-						}
+					var container = document.querySelector('.container')
 
-						skip.classList.add('skipping')
+					ajax('/templates/picture.html').then(function(template) {
+						
+						dust.loadSource(dust.compile(template, 'picture'))
+					})
+					.then(function() {
 
-						action().finally(function() {
-							skip.classList.remove('skipping')
+						carousel.start(container)
+
+						document.querySelector('.control.favourite').addEventListener('click', function (event) {
+							// add to favourites
+							// and update the icon
+
+							console.log('to do: favourite', carousel.current_image())
+
+							window.open(carousel.current_image().url,'_blank')
 						})
-					}
 
-					skip.addEventListener('click', function (event) {
-						move_carousel_if_idle(carousel.skip.bind(carousel))
-					})
+						var skip = document.querySelector('.control.skip')
 
-					document.addEventListener('keydown', function (event) {
-						switch (event.keyCode) {
-							// left
-							case 37:
-								return move_carousel_if_idle(carousel.previous.bind(carousel))
+						function move_carousel_if_idle(action) {
+							if (carousel.cycling) {
+								return event.preventDefault()
+							}
 
-							// Right
-							case 39:
-								return move_carousel_if_idle(carousel.next.bind(carousel))
+							skip.classList.add('skipping')
+
+							action().finally(function() {
+								skip.classList.remove('skipping')
+							})
 						}
+
+						skip.addEventListener('click', function (event) {
+							move_carousel_if_idle(carousel.skip.bind(carousel))
+						})
+
+						document.addEventListener('keydown', function (event) {
+							switch (event.keyCode) {
+								// left
+								case 37:
+									return move_carousel_if_idle(carousel.previous.bind(carousel))
+
+								// Right
+								case 39:
+									return move_carousel_if_idle(carousel.next.bind(carousel))
+							}
+						})
 					})
 				})
 			})
