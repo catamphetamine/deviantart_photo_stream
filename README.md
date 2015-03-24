@@ -52,10 +52,16 @@ The script isn't tested well for now, so errors of all kinds might to happen.
 To Do
 =====
 
+When the application starts the user sees a black screen until the image refresh finishes (may take a couple of minutes).
+
+Hence maybe somehow force premature cycling (handle already running image refresh then, image exhaustion, etc).
+
+Don't show images with height to width ratio more than 5.
+
 Показывать контролы не по наведению, а по клику (и скрывать по ещё одному клику, и ещё по таймауту)
+
 Кластеризовать
-Add a 500px.com plugin
-Could add a cghub plugin if it was still online
+
 Выкатить в виде веб-сайта (только deviantart сразу забанит)
 Как вариант, парсер один на сервере, тянет с нескольких сайтов
 Пользователи же сами могут лайкать/дизлайкать

@@ -4,6 +4,7 @@ define([], function () {
 		blacklisted: [],
 
 		add_image: function (image) {
+
 			if (this.blacklisted.has(image.url)) {
 				return
 			}
@@ -30,8 +31,9 @@ define([], function () {
 			return ajax('/blacklist').then(function(blacklist) {
 				this.blacklisted = blacklist
 
-				console.log(this.blacklisted)
-			})
+				console.log('Blacklisted images', this.blacklisted)
+			}
+			.bind(this))
 		}
 	}
 
