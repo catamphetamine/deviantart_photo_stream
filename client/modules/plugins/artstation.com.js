@@ -46,13 +46,17 @@ define(['modules/photostream', 'modules/spider'], function (photostream, spider)
 
 						// var description = document.querySelector('.dev-view-about .text')
 
-						photostream.add_image({
+						var result = photostream.add_image({
 							title       : title.firstChild.nodeValue,
 							author      : author.firstChild.nodeValue,
 							author_link : author.getAttribute('href'),
 							url         : image.getAttribute('src'),
 							link        : artwork_link
 						})
+
+						if (!result) {
+							return Promise.reject('Image blacklisted')
+						}
 					})
 				}))
 			})

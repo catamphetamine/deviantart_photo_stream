@@ -17,6 +17,7 @@ define([], function () {
 			console.log('Adding image', image)
 
 			this.images.push(image)
+			return true
 		},
 
 		blacklist: function(image) {

@@ -12,11 +12,24 @@ define(['modules/database'], function (database) {
 		},
 
 		refresh_images: function() {
-			console.log('Refreshing image list')
+			return new Promise(function (resolve, reject) {
+				if (this.refreshing_images) {
+					return reject('Already refreshing images')
+				}
 
-			database.images = []
+				console.log('Refreshing image list')
 
-			return this.active_plugin.run()
+				this.refreshing_images = true
+
+				database.images = []
+
+				return this.active_plugin.run().finally(function() {
+					this.refreshing_images = false
+					return resolve()
+				}
+				.bind(this))
+			}
+			.bind(this))
 		},
 
 		add_image: function(image) {
@@ -33,7 +46,7 @@ define(['modules/database'], function (database) {
 				image.author_link = image.author_link.substring(image.author_link.lastIndexOf('http'))
 			}
 
-			database.add_image(image)
+			return database.add_image(image)
 		}
 
 		// go: function() {

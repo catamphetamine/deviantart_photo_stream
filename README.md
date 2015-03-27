@@ -52,11 +52,11 @@ The script isn't tested well for now, so errors of all kinds might to happen.
 To Do
 =====
 
+Save blacklist in local storage
+
 When the application starts the user sees a black screen until the image refresh finishes (may take a couple of minutes).
 
 Hence maybe somehow force premature cycling (handle already running image refresh then, image exhaustion, etc).
-
-Don't show images with height to width ratio more than 5.
 
 Показывать контролы не по наведению, а по клику (и скрывать по ещё одному клику, и ещё по таймауту)
 

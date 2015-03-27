@@ -99,3 +99,9 @@ function whichTransitionEvent () {
 String.prototype.starts_with = function(what) {
 	return this.indexOf(what) === 0
 }
+
+var wait = function(delay) {
+	return new Promise(function (resolve, reject) {
+		setTimeout(resolve, delay)
+	})
+}

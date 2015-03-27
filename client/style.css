@@ -267,3 +267,14 @@ body:hover .picture_header {
 .picture_link:hover, .author_link:hover {
 	text-decoration: underline;
 }
+
+/*.refreshing_images {
+	text-align: center;
+	height: 100%;
+}
+
+.refreshing_images_text {
+	display: inline-block;
+	vertical-align: middle;
+	line-height: normal;      
+}*/

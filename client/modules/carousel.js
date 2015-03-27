@@ -1,7 +1,10 @@
 define(['modules/photostream', 'modules/database', 'modules/template'], function (photostream, database, template) {
 	var carousel = {
+		Max_image_height_to_width_ratio: 5,
+
 		timers: {
 			Carousel_cycle_interval: 5 * 60 * 1000,
+			Retry_delay: 10 * 1000,
 			// for testing:
 			// Carousel_cycle_interval: 10 * 1000,
 			Image_fade_time: 2 * 1000, // sync this value with the stylesheet
@@ -58,7 +61,13 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 					this.index = -1
 
-					return this.query_and_show_images().finally(function() {
+					return this.query_and_show_images().catch(function() {
+						this.cycling = false
+						return wait(carousel.timers.Retry_delay).then(function() {
+							return this.go_to(to, options)
+						}.bind(this))
+					}
+					.bind(this)).then(function() {
 						this.cycling = false
 					}
 					.bind(this))
@@ -73,12 +82,32 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 			console.log('Cycling to image #' + this.index)
 
-			return carousel.show_image(database.images[this.index], options).then(function() {
+			var schedule_next_cycle = function() {
 
 				this.cycle_timeout = this.cycle.bind(this).delayed(this.timers.Carousel_cycle_interval)
 				this.cycling = false
 			}
-			.bind(this))
+			.bind(this)
+
+			var recursive_try = function() {
+				return carousel.load_image(database.images[this.index]).catch(function() { 
+					return wait(carousel.timers.Retry_delay).then(recursive_try)
+				})
+				.then(function(image) {
+					return carousel.validate_image(image)
+				})
+				.catch(function() {
+					carousel.cycling = false
+					return carousel.cycle()
+				})
+				.then(function(image) {
+					return carousel.show_image(image, options)
+				})
+				.then(schedule_next_cycle)
+			}
+			.bind(this)
+
+			return recursive_try()
 		},
 
 		previous: function() {
@@ -112,100 +141,121 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 			return carousel.cycle({ forced: true })
 		},
 
-		show_image: function(image, options) {
+		load_image: function(image) {
 			return new Promise(function (resolve, reject) {
-				console.log('Show image', image)
+				console.log('Load image', image.url)
 
 				var loading_image = document.createElement('img')
 
-				loading_image.onload = (function() {
-
-					var current_image = this.container.querySelector('.image:last-child')
-
-					template.render("picture", image).then(function(new_image) {
-
-						carousel.container.appendChild(new_image)
-
-						// force css to animate between style class changes
-						function finish() {
-
-							function add_class (element, style_class) {
-
-								return new Promise(function (resolve, reject) {
-									/* Listen for a transition */
-									var listener
-
-									function remove_listener() {
-										element.removeEventListener(whichTransitionEvent(), listener)
-									}
-
-									var resolved = false
-
-									function finish() {
-										if (resolved) {
-											return
-										}
-
-										resolved = true
-
-										remove_listener()
-										resolve()
-									}
-
-									listener = function (event) {
-
-										// // && !(!propertyName || event.propertyName === propertyName)
-										if (event.target !== element) {
-											return
-										}
-
-										finish()
-									}
-
-									element.addEventListener(whichTransitionEvent(), listener)
-
-									element.classList.add(style_class)
-
-									// in case of lags, unfreeze the animation
-									Promise.delay(2000).then(finish)
-								})
-							}
-
-							var shown_class = (options && options.forced) ? 'image_shown_fast' : 'image_shown_slow'
-							var hidden_class = (options && options.forced) ? 'image_hidden_fast' : 'image_hidden_slow'
-
-							// for testing
-							// var shown_class = (options && options.forced) ? 'image_shown_slow' : 'image_shown_slow'
-							// var hidden_class = (options && options.forced) ? 'image_hidden_slow' : 'image_hidden_slow'
-
-							if (current_image) {
-								current_image.classList.add(hidden_class)
-							}
-
-							add_class(new_image, shown_class).then(function() {
-
-								if (current_image) {
-									// for debugging
-									console.log('removing node', current_image)
-									console.log('event', event)
-
-									current_image.removeNode()
-								}
-
-								resolve()
-							})
-						}
-
-						finish.delayed(10)
-					})
-				})
-				.bind(this)
+				loading_image.onload = function() {
+					image.width  = this.width
+					image.height = this.height
+					resolve(image)
+				}
 
 				loading_image.onerror = function(error) {
 					reject(error)
 				}
 
 				loading_image.src = image.url
+			})
+		},
+
+		validate_image: function(image) {
+			console.log('Validate image')
+
+			if (image.height / image.width  > carousel.Max_image_height_to_width_ratio) {
+				throw new Error('Image is too slim')
+			}
+
+			return image
+		},
+
+		show_image: function(image, options) {
+			// var image         = image_data.image_info
+			// var image_element = image_data.image_element
+
+			return new Promise(function (resolve, reject) {
+				console.log('Show image')
+
+				var current_image = this.container.querySelector('.image:last-child')
+
+				template.render("picture", image).then(function(new_image) {
+
+					carousel.container.appendChild(new_image)
+
+					// force css to animate between style class changes
+					function finish() {
+
+						function add_class (element, style_class) {
+
+							return new Promise(function (resolve, reject) {
+								/* Listen for a transition */
+								var listener
+
+								function remove_listener() {
+									element.removeEventListener(whichTransitionEvent(), listener)
+								}
+
+								var resolved = false
+
+								function finish() {
+									if (resolved) {
+										return
+									}
+
+									resolved = true
+
+									remove_listener()
+									resolve()
+								}
+
+								listener = function (event) {
+
+									// // && !(!propertyName || event.propertyName === propertyName)
+									if (event.target !== element) {
+										return
+									}
+
+									finish()
+								}
+
+								element.addEventListener(whichTransitionEvent(), listener)
+
+								element.classList.add(style_class)
+
+								// in case of lags, unfreeze the animation
+								Promise.delay(2000).then(finish)
+							})
+						}
+
+						var shown_class = (options && options.forced) ? 'image_shown_fast' : 'image_shown_slow'
+						var hidden_class = (options && options.forced) ? 'image_hidden_fast' : 'image_hidden_slow'
+
+						// for testing
+						// var shown_class = (options && options.forced) ? 'image_shown_slow' : 'image_shown_slow'
+						// var hidden_class = (options && options.forced) ? 'image_hidden_slow' : 'image_hidden_slow'
+
+						if (current_image) {
+							current_image.classList.add(hidden_class)
+						}
+
+						add_class(new_image, shown_class).then(function() {
+
+							if (current_image) {
+								// for debugging
+								console.log('removing node', current_image)
+								console.log('event', event)
+
+								current_image.removeNode()
+							}
+
+							resolve()
+						})
+					}
+
+					finish.delayed(10)
+				})
 			}
 			.bind(this))
 		},
