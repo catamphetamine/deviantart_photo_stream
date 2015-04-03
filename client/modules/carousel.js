@@ -1,6 +1,17 @@
 define(['modules/photostream', 'modules/database', 'modules/template'], function (photostream, database, template) {
+
+	function Invalid_image_error(message) {
+		this.message = message
+		this.name    = "Invalid_image_error"
+
+		Error.captureStackTrace(this, Invalid_image_error)
+	}
+
+	Invalid_image_error.prototype             = Object.create(Error.prototype)
+	Invalid_image_error.prototype.constructor = Invalid_image_error
+
 	var carousel = {
-		Max_image_height_to_width_ratio: 5,
+		Max_image_height_to_width_ratio: 4,
 
 		timers: {
 			Carousel_cycle_interval: 5 * 60 * 1000,
@@ -26,6 +37,10 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 				return this.cycle()
 			}
 			.bind(this))
+		},
+
+		cycle_after_blacklist: function(options) {
+			return this.go_to(this.index, Object.extend({ refresh_on_exhaustion: true }, options))
 		},
 
 		cycle: function(options) {
@@ -80,7 +95,8 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 				}
 			}
 
-			console.log('Cycling to image #' + this.index)
+			console.log('')
+			console.log('Cycling to image #' + (this.index + 1))
 
 			var schedule_next_cycle = function() {
 
@@ -96,14 +112,15 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 				.then(function(image) {
 					return carousel.validate_image(image)
 				})
-				.catch(function() {
-					carousel.cycling = false
-					return carousel.cycle()
-				})
 				.then(function(image) {
 					return carousel.show_image(image, options)
 				})
 				.then(schedule_next_cycle)
+				.catch(Invalid_image_error, function() {
+					console.log('Image isn\'t suitable')
+					carousel.cycling = false
+					return carousel.cycle()
+				})
 			}
 			.bind(this)
 
@@ -138,7 +155,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 			if (carousel.current_image()) {
 				carousel.blacklist_image()
 			}
-			return carousel.cycle({ forced: true })
+			return carousel.cycle_after_blacklist({ forced: true })
 		},
 
 		load_image: function(image) {
@@ -165,7 +182,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 			console.log('Validate image')
 
 			if (image.height / image.width  > carousel.Max_image_height_to_width_ratio) {
-				throw new Error('Image is too slim')
+				throw new Invalid_image_error('Image is too slim')
 			}
 
 			return image
@@ -176,7 +193,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 			// var image_element = image_data.image_element
 
 			return new Promise(function (resolve, reject) {
-				console.log('Show image')
+				console.log('Showing image', image)
 
 				var current_image = this.container.querySelector('.image:last-child')
 
@@ -244,8 +261,8 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 							if (current_image) {
 								// for debugging
-								console.log('removing node', current_image)
-								console.log('event', event)
+								// console.log('removing node', current_image)
+								// console.log('event', event)
 
 								current_image.removeNode()
 							}

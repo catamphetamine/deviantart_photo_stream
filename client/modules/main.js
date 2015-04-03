@@ -1,7 +1,7 @@
 define(function (require) {
 	require(['modules/photostream', 'modules/carousel', 'modules/database'], function (photostream, carousel, database) {
 
-		Promise.longStackTraces()
+		// Promise.longStackTraces()
 
 		ajax('/configuration').then(function(configuration) {
 
