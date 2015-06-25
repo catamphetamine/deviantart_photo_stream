@@ -12,6 +12,7 @@ define(['modules/database'], function (database) {
 		},
 
 		refresh_images: function() {
+			// мб лучше return Promise.resolve(true).then(function () {
 			return new Promise(function (resolve, reject) {
 				if (this.refreshing_images) {
 					return reject('Already refreshing images')

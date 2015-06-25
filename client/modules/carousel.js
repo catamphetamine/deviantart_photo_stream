@@ -105,8 +105,21 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 			}
 			.bind(this)
 
+			var retries_left = 10
+
+			var pass = function() {
+				carousel.cycling = false
+				// return false
+				return carousel.cycle()
+			}
+
 			var recursive_try = function() {
 				return carousel.load_image(database.images[this.index]).catch(function() { 
+					retries_left--
+					if (!retries_left) {
+						console.log('Image failed to load. Skipping')
+						return pass()
+					}
 					return wait(carousel.timers.Retry_delay).then(recursive_try)
 				})
 				.then(function(image) {
@@ -117,9 +130,8 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 				})
 				.then(schedule_next_cycle)
 				.catch(Invalid_image_error, function() {
-					console.log('Image isn\'t suitable')
-					carousel.cycling = false
-					return carousel.cycle()
+					console.log('Image isn\'t suitable. Skipping')
+					return pass()
 				})
 			}
 			.bind(this)
@@ -192,7 +204,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 			// var image         = image_data.image_info
 			// var image_element = image_data.image_element
 
-			return new Promise(function (resolve, reject) {
+			return Promise.resolve(true).then(function () {
 				console.log('Showing image', image)
 
 				var current_image = this.container.querySelector('.image:last-child')
@@ -206,6 +218,7 @@ define(['modules/photostream', 'modules/database', 'modules/template'], function
 
 						function add_class (element, style_class) {
 
+							// мб лучше return Promise.resolve(true).then(function () {
 							return new Promise(function (resolve, reject) {
 								/* Listen for a transition */
 								var listener
